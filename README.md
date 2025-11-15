@@ -1,136 +1,187 @@
-# Predict_Week_Month
+📌 Predict_Week_Month
 
-Scripts to analyze weekly and monthly 3-digit draws, build frequency tables, run backtests, and produce predictions (including 1-year forecasts).  
-Each Node.js script reads Excel input(s) and writes Excel/CSV outputs into a folder named after the JS file being executed.
+A Node.js-based numerical prediction system that processes weekly and monthly 3-digit historical data from Excel, generates frequency tables, and outputs predictions for upcoming dates (including full 1-year predictions).
 
-# Recommended (reproducible)
-npm ci
-
-The scripts rely on:
-
-exceljs — read/write .xlsx files
-
-dayjs — date handling
-
-These are included in package.json and will be installed by npm ci / npm install.
-
-Repository layout (important files)
-
-Prediction_Scripts/ — main Node.js scripts (examples below):
-
-backtest.js (backtesting script)
-
-predict_with_freqs_exceljs.js
-
-predict_with_freqs_exceljs_sep_year.js
+This repository contains two major scripts:
 
 separate_predict_year.js
+→ Generates a 1-year prediction for weekly and monthly data separately.
 
-... (other helper / experimental scripts)
+predict_with_freqs_exceljs_sep_year.js
+→ Generates full probability tables + predictions for custom dates.
 
-Test_Data/ — example Excel input files (weekly & monthly).
+Both scripts automatically create their own output folder and save results inside it.
 
-package.json, package-lock.json
+📦 Prerequisites
 
-.gitignore — should include /node_modules
+Before running anything, install:
 
-Input Excel formats expected
+1. Node.js
 
-Scripts try to parse common structures automatically. Typical acceptable formats:
+Version 16+ recommended
+Download: https://nodejs.org/
 
-Flattened table with columns like Date and Number (one draw per row).
+Check install:
 
-Weekly grid: header row contains weekday names (SUN,MON,...), grid cells contain 3-digit draws.
+node -v
+npm -v
 
-Monthly grid: a DATE column (day-of-month) and month columns (JAN,FEB,...) containing 3-digit draws.
+2. Install project dependencies
 
-Scripts ignore blank cells and non-3-digit placeholders (e.g., XXX).
+Run inside the project root:
 
-How outputs are organized
+npm install
 
-When you run a script, an output folder is created automatically whose name equals the JS filename (script basename). Example:
+
+This installs only the safe packages:
+
+exceljs
+
+dayjs
+
+⚠️ xlsx is not used (security advisories).
+All Excel operations use exceljs instead.
+
+📂 Folder Structure
+Predict_Week_Month/
+│
+├── Prediction_Scripts/
+│   ├── separate_predict_year.js
+│   ├── predict_with_freqs_exceljs_sep_year.js
+│
+├── Test_Data/
+│   ├── weekly.xlsx
+│   ├── monthly.xlsx
+│
+├── README.md
+└── package.json
+
+🚀 Running the Scripts
+✅ 1. Full 1-Year Prediction (Weekly & Monthly Separate)
+
+Use:
 
 node Prediction_Scripts/separate_predict_year.js Test_Data/weekly.xlsx Test_Data/monthly.xlsx
 
-# Creates:
-./separate_predict_year/
-  weekly_year_predictions.xlsx
-  monthly_year_predictions.xlsx
+📌 Output location:
+
+A folder is created automatically:
+
+/separate_predict_year/
 
 
-Workbooks commonly include sheets:
+Inside it you will find:
 
-positional_overall — digit counts/probabilities per position
+Weekly output
 
-positional_weekday / positional_month
+weekly_year_predictions.xlsx
 
-triplets_weekday / triplets_month / triplets_month_day
+separate_predict_year_weekly_predictions.csv
 
-predictions — predicted candidates per requested date / next 365 days
+(Use these for weekly prediction analysis)
 
-Backtest scripts output CSV files (per-case results) and are also placed under a script-named folder.
+Monthly output
 
-Common commands / examples
+monthly_year_predictions.xlsx
 
-From repository root, replace paths as needed:
+separate_predict_year_monthly_predictions.csv
 
-1) Run the separate-year predictions (weekly & monthly separate)
-node Prediction_Scripts/separate_predict_year.js Test_Data/weekly.xlsx Test_Data/monthly.xlsx
-# Outputs in ./separate_predict_year/
+(Use these for monthly prediction analysis)
 
-2) Predict for specific dates and produce a workbook with freq sheets
-node Prediction_Scripts/predict_with_freqs_exceljs.js \
-  Test_Data/weekly.xlsx Test_Data/monthly.xlsx \
-  output.xlsx "2025-11-16,2025-11-17"
-# If script is named predict_with_freqs_exceljs.js this will create ./predict_with_freqs_exceljs/output.xlsx
+✅ 2. Prediction for Custom Dates + Full Frequency Tables
 
-3) Produce one-year (365-day) predictions separately for weekly/monthly
+Use:
+
 node Prediction_Scripts/predict_with_freqs_exceljs_sep_year.js \
-  Test_Data/weekly.xlsx Test_Data/monthly.xlsx
-# Outputs:
-# ./predict_with_freqs_exceljs_sep_year/weekly_year_predictions.xlsx
-# ./predict_with_freqs_exceljs_sep_year/monthly_year_predictions.xlsx
+     Test_Data/weekly.xlsx \
+     Test_Data/monthly.xlsx \
+     output.xlsx \
+     2025-11-16,2025-11-17,2025-11-18
 
-4) Backtest (example)
-node Prediction_Scripts/backtest_lottery.js Test_Data/weekly.xlsx Test_Data/monthly.xlsx
-# Outputs CSV(s) in ./backtest_lottery/
+📌 Output location:
 
-Configuration & tuning
+A folder is created:
 
-Many scripts expose constants at the top for:
+/predict_with_freqs_exceljs_sep_year/
 
-smoothing (Laplace / pseudo-counts),
 
-mixture weights between triplet-frequency and positional-product,
+You will get:
 
-how many candidates to list (top-N),
+output.xlsx → contains:
 
-prediction date-range (next 365 days is default for year predictions).
+positional_overall
 
-Edit those values in the script if you want alternate behavior.
+triplets_overall
 
-Recommended workflow
+positional_weekday
 
-Prepare/clean your Excel inputs and put them in Test_Data/ (or point to correct paths).
+triplets_weekday
 
-npm ci
+positional_month
 
-Run the script you need (see commands above).
+triplets_month
 
-Open generated workbook(s) in the output folder (script basename).
+predictions (for given dates)
 
-Git / CI best-practices
+predict_with_freqs_exceljs_sep_year_weekly_predictions.csv
 
-Do not commit node_modules/. Add /node_modules to .gitignore.
+predict_with_freqs_exceljs_sep_year_monthly_predictions.csv
 
-Commit package.json and package-lock.json (for deterministic installs).
+📈 Which File Should You Use for Weekly Predictions?
+✔ Recommended File:
+separate_predict_year/weekly_year_predictions.xlsx
 
-Example .gitignore entries:
+For a given date:
+
+Check the predictions sheet inside the workbook.
+
+Key columns:
+Column	Meaning
+Date	Predicted date
+Weekday	0=Sun … 6=Sat
+ObservationsUsed	Count of historical draws used
+TopCandidates	Ranked 3-digit predictions
+
+You can also refer to:
+
+triplets_weekday (exact historic weekday triplets)
+
+positional_weekday (digit probability by position)
+
+If you prefer CSV:
+separate_predict_year/separate_predict_year_weekly_predictions.csv
+
+📈 Which File Should You Use for Monthly Predictions?
+Use:
+separate_predict_year/monthly_year_predictions.xlsx
+
+
+This uses:
+
+month-day historical priority
+
+month-only historical fallback
+
+overall fallback
+
+Sheets include:
+
+Sheet	Purpose
+predictions	Best candidates for each date
+positional_month	digit probability by month
+triplets_month	month-based frequency
+triplets_month_day	exact date frequency
+📝 Development Notes
+✔ node_modules should NOT be committed
+
+Ensure .gitignore includes:
 
 /node_modules
-/.env
-.DS_Store
 
+✔ All output folders are auto-created
 
+Each script self-creates a folder named after the script.
 
+✔ xxx values are automatically ignored
 
+The scripts do not treat xxx as numeric values.
